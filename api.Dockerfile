@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build-env
 
 ARG NUGET_USER
 ARG NUGET_PASSWORD
@@ -16,7 +16,7 @@ WORKDIR /App/Cms.PostService/Api/src
 # Build and publish a release
 RUN dotnet publish -c Release -o out
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine as runtime-env
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine as runtime-env
 
 WORKDIR /App
 

@@ -1,0 +1,1 @@
+dotnet ef --startup-project ../src/Cms.PostService.Api/src database update
