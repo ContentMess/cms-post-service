@@ -1,0 +1,37 @@
+name: Build Image using Containerfile
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build-and-publish:
+    uses: ContentMess/cms-workflows/.github/workflows/publish-image.yaml@main
+    with:
+      image_name: cms-post-service
+      containerfile_path: api.Dockerfile
+      tags: latest ${{ github.ref_name }}
+  deploy:
+    uses: ContentMess/cms-workflows/.github/workflows/deploy-image.yaml@main
+    needs: build-and-publish
+    with:
+      chart_registry: oci://ghcr.io/contentmess/cms-post-service-chart
+      release_name: cms-post-service
+      namespace: cms
+      cluster_name: content-mess
+      helm_sets: |
+        --set spec.replicas=1 \
+        --set spec.template.spec.image=ghcr.io/contentmess/cms-post-service:${{ github.ref_name }} \
+        --set configuration.environment=production \
+        --set metadata.namespace=cms \
+        --set configuration.otel.exporterOtlpEndpoint=http://otel-collector-opentelemetry-collector:4317 \
+        --set configuration.connectionStrings.postgres=postgresql://postgres:postgres@cms-postgres-cluster-rw:5432/cms?sslmode=disable \
+        --set configuration.messagingBroker.rabbitMq.hostName=cms-rabbitmq-headless \
+        --set configuration.messagingBroker.rabbitMq.port=5672 \
+        --set configuration.messagingBroker.rabbitMq.userName=admin \
+        --set configuration.messagingBroker.rabbitMq.password=admin \
+        --set configuration.messagingBroker.rabbitMq.virtualHost=content-mess \
+        --set configuration.messagingBroker.rabbitMq.ssl.enabled=false \
+    secrets:
+      digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
